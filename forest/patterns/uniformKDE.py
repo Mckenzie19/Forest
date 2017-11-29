@@ -5,7 +5,7 @@ Mckenzie Ebert
 '''
 
 
-from ..bob import *
+from ..bobs import *
 from ..primitives import *
 from ..engines import *
 from .Pattern import *

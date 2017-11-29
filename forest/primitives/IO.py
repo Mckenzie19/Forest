@@ -554,3 +554,30 @@ class GeoTIFFMultiWriter(Primitive):
         return
 
 multiGeoWriter = GeoTIFFMultiWriter()
+
+
+class ShapefileWriterPrim(Primitive):
+
+    def __init__(self):
+        super(ShapefileWriterPrim, self).__init__("Shapefile Writer")
+
+    #Currently, the schema must be given to the pattern by the user - this should try to be generalized and automated
+    def __call__(self, vector, schema = None, filePath = None):
+
+        #File will be saved to current working directory if no file path is defined
+        if filePath == None:
+            filePath = str(os.getcwd())+"/TestResults-"+str(time)
+
+        #Schema is currently hardcorded for testing purposes.
+        schema = {'geometry': 'Point', 'properties': {'CentroidX': 'float', 'CentroidY': 'float'}}
+
+        #Adds the name of the file to be created to the file path
+        filePath = filePath + "/Results" + str(time.strftime("%m")) + "-" + str(time.strftime("%d"))+"-"+str(time)+".tif"
+        newSF = fiona.open(filePath, 'w', driver = 'ESRI Shapefile', crs = {'no_defs': True, 'ellps': 'WGS84', 'datum': 'WGS84', 'proj': 'longlat'}, schema = schema)
+
+        for feature in vector.data:
+            newSF.write(vector.data[feature])
+
+        newSF.close()
+
+ShapefileWriter = ShapefileWriterPrim()

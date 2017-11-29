@@ -126,6 +126,30 @@ class KMeans(Pattern):
         return output
 
 
+class assignNearest(Primitive):
+
+    def __call__(self, points, centers): 
+
+        #Current set up has each core running through every point in the data set.
+        for point in points.data:
+            #Finds the cluster the current data point is nearest to
+            minDistance = float('inf')            
+            for index in range(len(centers)):
+                distance = ((centers[index][0]-points.data[point]["geometry"]["coordinates"][0])**2+(centers[index][1]-points.data[point]["geometry"]["coordinates"][1])**2)**(0.5)
+
+                if distance < minDistance:
+                    minDistance = distance
+                    nearestIndex = index
+
+
+            points.data[point]['attributes']['CentroidX': centers[nearestIndex][0]]
+            points.data[point]['attributes']['CentroidY': centers[nearestIndex][1]]
+
+
+        return [points]
+
+assignNear = assignNearest("Assign Nearest Points")
+
 ##kmean = KMeans("K-Means Algorithm")
 
 #Hardcoded Test Run of the Pattern
@@ -147,16 +171,9 @@ class runKM(Pattern):
             length = len(results)
 
         centers = results[1]
-        #print(centers)
-        finalPoints = Raster(points.y, points.x, points.h, points.w, points.s, points.d, 100, 100, points.h/100)
-        for point in centers:
-            for row,col in finalPoints.iterrc():
-                yVal, xVal = finalPoints.findCellCenter(row, col)
-                if finalPoints.pointInCell(xVal, yVal, point[0], point[1]):
-                    finalPoints.data[row][col] = 1000
+        finalPoints = assignNear(points, centers)
 
-        #print(finalPoints.x, finalPoints.y, finalPoints.h, finalPoints.w)
-        GeotiffWrite.__call__(finalPoints, spr)
+        ShapefileWriter.__call__(finalPoints)
 
 kmean = runKM("K-Means Hard Coded Run")
 
